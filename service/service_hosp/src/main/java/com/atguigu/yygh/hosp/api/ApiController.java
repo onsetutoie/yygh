@@ -164,6 +164,7 @@ public class ApiController {
         //获取数据 校验签名省略
         String sign = (String) paramMap.get("sign");
         String hoscode = (String) paramMap.get("hoscode");
+        String depcode = (String) paramMap.get("depcode");
         //校验page属性
         int page = StringUtils.isEmpty(paramMap.get("page"))?
                 1:Integer.parseInt((String)paramMap.get("page"));
@@ -172,6 +173,8 @@ public class ApiController {
         //创建条件查询对象
         ScheduleQueryVo scheduleQueryVo = new ScheduleQueryVo();
         scheduleQueryVo.setHoscode(hoscode);
+        scheduleQueryVo.setDepcode(depcode);
+
         Page<Schedule> pageInfo = scheduleService.selectPage(page,limit,scheduleQueryVo);
         return Result.ok(pageInfo);
     }

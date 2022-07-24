@@ -54,9 +54,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         //创建条件模板
         Schedule schedule = new Schedule();
         BeanUtils.copyProperties(scheduleQueryVo,schedule);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
-                .withIgnoreCase(true);
+        schedule.setIsDeleted(0);
+
+        //创建匹配器，即如何使用查询条件
+        ExampleMatcher matcher = ExampleMatcher.matching() //构建对象
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)//改变默认字符串匹配方式：模糊查询
+                .withIgnoreCase(true); //改变默认大小写忽略方式：忽略大小写
         Example<Schedule> example = Example.of(schedule,matcher);
 
         //调用接口方法

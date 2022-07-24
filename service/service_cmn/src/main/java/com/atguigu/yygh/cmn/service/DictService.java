@@ -16,4 +16,10 @@ public interface DictService extends IService<Dict> {
 
     //导入字典数据
     void importData(MultipartFile file);
+
+    //获取数据字典名称
+    String getNameByInfo(String parentDictCode, String value);
+
+    //根据dictCode获取下级节点
+    List<Dict> findByDictCode(String dictCode);
 }

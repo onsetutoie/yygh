@@ -21,6 +21,29 @@ public class DictController {
     @Autowired
     DictService dictService;
 
+    @ApiOperation(value = "获取数据字典名称(自定义)")
+    @GetMapping("getName/{parentDictCode}/{value}")
+    public String getName(@PathVariable("parentDictCode") String parentDictCode,
+                     @PathVariable("value") String value){
+       String name =  dictService.getNameByInfo(parentDictCode,value);
+       return name;
+    }
+
+    @ApiOperation(value = "获取数据字典名称(国标)")
+    @GetMapping("getName/{value}")
+    public String getName(@PathVariable("value") String value){
+        String name =  dictService.getNameByInfo("",value);
+        return name;
+    }
+
+    @ApiOperation(value = "根据dictCode获取下级节点")
+    @GetMapping(value = "/findByDictCode/{dictCode}")
+    public R findByDictCode(
+            @PathVariable String dictCode) {
+        List<Dict> list = dictService.findByDictCode(dictCode);
+        return R.ok().data("list",list);
+    }
+
     @ApiOperation(value = "根据数据id查询子数据列表")
     @GetMapping("findChildData/{id}")
     public R findChileData(@PathVariable Long id){

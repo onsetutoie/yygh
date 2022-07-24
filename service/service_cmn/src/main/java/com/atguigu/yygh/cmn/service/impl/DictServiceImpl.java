@@ -13,6 +13,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -85,6 +86,47 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
             e.printStackTrace();
             throw new YyghException(20001,"导入数据失败");
         }
+    }
+
+    //获取数据字典名称
+    @Override
+    public String getNameByInfo(String parentDictCode, String value) {
+        //1.判断parentDictCode是否为空
+        if (StringUtils.isEmpty(parentDictCode)) {
+            //2.国标数据查询
+            Dict dict = baseMapper.selectOne(new QueryWrapper<Dict>()
+                    .eq("value",value));
+            if (dict != null) {
+                return dict.getName();
+            }
+        }else {
+            //2. 自定义数据查询
+            Dict parentDict  = this.getDictByDictCode(parentDictCode);
+
+            Dict dict = baseMapper.selectOne(new QueryWrapper<Dict>().eq("parent_id",
+                    parentDict.getId()).eq("value", value));
+            if(null != dict) {
+                return dict.getName();
+            }
+        }
+        return "";
+    }
+
+    //根据dictCode获取下级节点
+    @Override
+    public List<Dict> findByDictCode(String dictCode) {
+        Dict dict = this.getDictByDictCode(dictCode);
+        if(null == dict) return null;
+        List<Dict> childData = this.findChildData(dict.getId());
+        return childData;
+    }
+
+    //根据字典编码查询父级别数据
+    private Dict getDictByDictCode(String parentDictCode) {
+        QueryWrapper<Dict> wrapper = new QueryWrapper<>();
+        wrapper.eq("dict_code",parentDictCode);
+        Dict dict = baseMapper.selectOne(wrapper);
+        return dict;
     }
 
     //查询是否有子数据

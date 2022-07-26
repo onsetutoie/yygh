@@ -20,7 +20,7 @@ import java.util.Map;
 @Api(description = "医院设置接口")
 @RestController
 @RequestMapping("/admin/hosp/hospitalSet")
-@CrossOrigin //解决跨域问题
+//@CrossOrigin //解决跨域问题
 public class HospitalSetController {
 
     @Autowired
@@ -88,11 +88,11 @@ public class HospitalSetController {
     @ApiOperation(value = "医院设置列表")
     @GetMapping("/findAll")
     public R findAll(){
-        try {
-            int i = 1/0;
-        } catch (Exception e) {
-            throw new YyghException(20001,"自定义异常");
-        }
+//        try {
+//            int i = 1/0;
+//        } catch (Exception e) {
+//            throw new YyghException(20001,"自定义异常");
+//        }
         List<HospitalSet> list = hospitalSetService.list();
         return R.ok().data("list",list);
     }

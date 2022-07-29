@@ -13,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class HospitalServiceImpl implements HospitalService {
@@ -27,6 +24,7 @@ public class HospitalServiceImpl implements HospitalService {
     @Autowired
     private DictFeignClient dictFeignClient;
 
+    //上传医院
     @Override
     public void save(Map<String, Object> map) {
         //1.转化参数类型  map -> Hospital
@@ -53,6 +51,7 @@ public class HospitalServiceImpl implements HospitalService {
         }
     }
 
+    //查询医根据hoscode
     @Override
     public Hospital getHospital(String hoscode) {
         Hospital hospital = hospitalRepository.getByHoscode(hoscode);
@@ -110,6 +109,29 @@ public class HospitalServiceImpl implements HospitalService {
         return map;
     }
 
+    //根据医院名称查询医院列表
+    @Override
+    public List<Hospital> findByHosnameLike(String hosname) {
+        List<Hospital> list = hospitalRepository.getByHosnameLike(hosname);
+        return list;
+    }
+
+    //医院预约挂号详情
+    @Override
+    public Map<String, Object> getHospByHoscode(String hoscode) {
+        //1根据hoscode查询医院信息
+        Hospital hospital = hospitalRepository.getByHoscode(hoscode);
+        BookingRule bookingRule = hospital.getBookingRule();
+        hospital.setBookingRule(null);
+        //封装返回
+        Map<String, Object> map = new HashMap<>();
+        map.put("hospital",hospital);
+        map.put("bookingRule",bookingRule);
+
+        return map;
+    }
+
+    //翻译
     private Hospital packHospital(Hospital hospital) {
         String hostypeString = dictFeignClient.getName(DictEnum.HOSTYPE.getDictCode(),hospital.getHostype());
         String provinceString = dictFeignClient.getName(hospital.getProvinceCode());

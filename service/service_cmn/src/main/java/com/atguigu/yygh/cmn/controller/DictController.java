@@ -21,6 +21,7 @@ public class DictController {
     @Autowired
     DictService dictService;
 
+
     @ApiOperation(value = "获取数据字典名称(自定义)")
     @GetMapping("getName/{parentDictCode}/{value}")
     public String getName(@PathVariable("parentDictCode") String parentDictCode,

@@ -42,7 +42,7 @@ public class MsmController {
         paramMap.put("code", code);
         //3.调用接口发送短信
         boolean isSend = msmService.send(phone, paramMap);
-        //4.发送验证码成功后，存入redis，时效5分钟
+        //4.发送验证码成功后，存入redis，时效1分钟
         if (isSend) {
             redisTemplate.opsForValue().set(phone,code,1, TimeUnit.MINUTES);
             return R.ok();

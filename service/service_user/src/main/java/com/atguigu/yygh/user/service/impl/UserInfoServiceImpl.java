@@ -27,6 +27,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         //1.校验参数
         String phone = loginVo.getPhone();
         String code = loginVo.getCode();
+        String openid = loginVo.getOpenid();
         if (StringUtils.isEmpty(phone) || StringUtils.isEmpty(code)){
             throw new YyghException(20001,"数据为空");
         }
@@ -37,23 +38,39 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         if (!code.equals(rediscode)) {
             throw new YyghException(20001,"验证码有误");
         }
-
-        //3.判断是否已经注册过
-        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
-        wrapper.eq("phone",phone);
-        UserInfo userInfo = baseMapper.selectOne(wrapper);
-        if (null == userInfo) {
-            //注册
-            userInfo = new UserInfo();
+        //2.5判断openid，如果为空手机号验证码登录，不为空走绑定手机号
+        Map<String, Object> map = new HashMap<>();
+        UserInfo userInfo = new UserInfo();
+        if (StringUtils.isEmpty(openid)) {
+            //3.判断是否已经注册过
+            QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
+            wrapper.eq("phone",phone);
+            userInfo = baseMapper.selectOne(wrapper);
+            if (null == userInfo) {
+                //注册
+                userInfo = new UserInfo();
+                userInfo.setPhone(phone);
+                userInfo.setStatus(1);
+                baseMapper.insert(userInfo);
+            }
+        }else {
+            // 根据openid查询用户信息
+            QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
+            wrapper.eq("openid", openid);
+            userInfo = baseMapper.selectOne(wrapper);
+            if (userInfo == null) {
+                throw new YyghException(20001,"用户注册信息有误");
+            }
+            // 更新用户手机号信息
             userInfo.setPhone(phone);
-            userInfo.setStatus(1);
-            baseMapper.insert(userInfo);
+            baseMapper.updateById(userInfo);
         }
+
+
         if (userInfo.getStatus() == 0) {
             throw new YyghException(20001,"用户已经禁用");
         }
         //补全用户信息
-        Map<String, Object> map = new HashMap<>();
         String name = userInfo.getName();
         if(StringUtils.isEmpty(name)) {
             name = userInfo.getNickName();
@@ -63,9 +80,9 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         }
         //用户登录
         String token = JwtHelper.createToken(userInfo.getId(), name);
-
         map.put("name", name);
         map.put("token", token);
+
         return map;
     }
 }

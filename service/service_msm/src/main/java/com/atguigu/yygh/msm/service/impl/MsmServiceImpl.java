@@ -32,7 +32,7 @@ public class MsmServiceImpl implements MsmService {
         //3.创建请求对象，存入参数
         CommonRequest request = new CommonRequest();
         //request.setProtocol(ProtocolType.HTTPS);
-      /*  request.setMethod(MethodType.POST);
+        request.setMethod(MethodType.POST);
         request.setDomain("dysmsapi.aliyuncs.com");
         request.setVersion("2017-05-25");
         request.setAction("SendSms");
@@ -40,7 +40,7 @@ public class MsmServiceImpl implements MsmService {
         request.putQueryParameter("PhoneNumbers", phone);
         request.putQueryParameter("SignName", "我的谷粒在线教育网站");
         request.putQueryParameter("TemplateCode", "SMS_183195440");
-        request.putQueryParameter("TemplateParam", JSONObject.toJSONString(paramMap));*/
+        request.putQueryParameter("TemplateParam", JSONObject.toJSONString(paramMap));
         try {
             //4.调用客户端对象方法发送请求，获取响应
             CommonResponse response = client.getCommonResponse(request);

@@ -2,12 +2,15 @@ package com.atguigu.yygh.user.service.impl;
 
 import com.atguigu.yygh.common.handler.YyghException;
 import com.atguigu.yygh.common.util.JwtHelper;
+import com.atguigu.yygh.enums.AuthStatusEnum;
 import com.atguigu.yygh.model.user.UserInfo;
 import com.atguigu.yygh.user.mapper.UserInfoMapper;
 import com.atguigu.yygh.user.service.UserInfoService;
 import com.atguigu.yygh.vo.user.LoginVo;
+import com.atguigu.yygh.vo.user.UserAuthVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -84,5 +87,41 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         map.put("token", token);
 
         return map;
+    }
+
+    //用户认证提交接口
+    @Override
+    public void userAuth(Long userId, UserAuthVo userAuthVo) {
+        //1.根据userId查询用户信息
+        UserInfo userInfo = baseMapper.selectById(userId);
+        if (userInfo == null) {
+            throw new YyghException(20001,"用户信息有误");
+        }
+        //2.更新认证信息
+        BeanUtils.copyProperties(userAuthVo,userInfo);
+        userInfo.setAuthStatus(AuthStatusEnum.AUTH_RUN.getStatus());
+        baseMapper.updateById(userInfo);
+    }
+
+    //根据用户id获取用户信息
+    @Override
+    public UserInfo getUserInfo(Long userId) {
+        //1.根据userId查询用户信息
+        UserInfo userInfo = baseMapper.selectById(userId);
+        if (userInfo == null) {
+            throw new YyghException(20001,"用户信息有误");
+        }
+        //2.翻译相关字段
+        userInfo = this.packUserInfo(userInfo);
+
+        return userInfo;
+    }
+
+    //翻译相关字段
+    private UserInfo packUserInfo(UserInfo userInfo) {
+        String statusNameByStatus =
+                AuthStatusEnum.getStatusNameByStatus(userInfo.getStatus());
+        userInfo.getParam().put("authStatusString",statusNameByStatus);
+        return userInfo;
     }
 }

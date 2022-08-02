@@ -8,6 +8,7 @@ import com.atguigu.yygh.model.hosp.Hospital;
 import com.atguigu.yygh.model.hosp.Schedule;
 import com.atguigu.yygh.vo.hosp.DepartmentVo;
 import com.atguigu.yygh.vo.hosp.HospitalQueryVo;
+import com.atguigu.yygh.vo.hosp.ScheduleOrderVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.joda.time.DateTime;
@@ -75,11 +76,25 @@ public class HospitalApiController {
     @ApiOperation(value = "获取排班数据")
     @GetMapping("auth/findScheduleList/{hoscode}/{depcode}/{workDate}")
     public R findScheduleList( @PathVariable String hoscode,@PathVariable String depcode,
-                               @PathVariable String workdate){
+                               @PathVariable String workDate){
         List<Schedule> scheduleList =
-                scheduleService.getScheduleDetail(hoscode, depcode, workdate);
+                scheduleService.getScheduleDetail(hoscode, depcode, workDate);
         return R.ok().data("scheduleList",scheduleList);
     }
 
+    @ApiOperation(value = "根据排班id获取排班详情")
+    @GetMapping("getSchedule/{id}")
+    public R findScheduleById(@PathVariable String id ){
+        Schedule schedule = scheduleService.findScheduleById(id);
+        return R.ok().data("schedule",schedule);
+    }
+
+    @ApiOperation(value = "根据排班id获取预约下单数据")
+    @GetMapping("inner/getScheduleOrderVo/{scheduleId}")
+    public ScheduleOrderVo getScheduleOrderVo(@PathVariable String scheduleId){
+        ScheduleOrderVo scheduleOrderVo =
+                scheduleService.getScheduleOrderVo(scheduleId);
+        return scheduleOrderVo;
+    }
 
 }

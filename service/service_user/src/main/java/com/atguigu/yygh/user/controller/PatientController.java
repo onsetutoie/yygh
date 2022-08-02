@@ -60,4 +60,11 @@ public class PatientController {
         return R.ok();
     }
 
+    @ApiOperation(value = "获取就诊人(远程调用)")
+    @GetMapping("inner/get/{id}")
+    public Patient getPatientOrder(@PathVariable("id") Long id){
+        Patient patient = patientService.getById(id);
+        return patient;
+    }
+
 }

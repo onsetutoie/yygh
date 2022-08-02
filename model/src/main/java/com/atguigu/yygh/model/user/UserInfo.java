@@ -33,6 +33,10 @@ public class UserInfo extends BaseEntity {
 	@TableField("phone")
 	private String phone;
 
+	@ApiModelProperty(value = "头像路径")
+	@TableField("headimg_url")
+	private String headimgUrl;
+
 	@ApiModelProperty(value = "用户姓名")
 	@TableField("name")
 	private String name;

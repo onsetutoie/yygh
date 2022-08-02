@@ -98,11 +98,13 @@ public class WeixinApiController {
                 String nickname = resultUserInfoJson.getString("nickname");
                 //用户头像
                 String headimgurl = resultUserInfoJson.getString("headimgurl");
+                System.out.println("headimgurl = " + headimgurl);
                 //5.4 userInfo 中存入信息完成注册
                 userInfo = new UserInfo();
                 userInfo.setOpenid(openid);
                 userInfo.setStatus(1);
                 userInfo.setNickName(nickname);
+                userInfo.setHeadimgUrl(headimgurl);
                 userInfoService.save(userInfo);
             }
             //6.验证用户是否被锁定
@@ -130,10 +132,12 @@ public class WeixinApiController {
             String token = JwtHelper.createToken(userInfo.getId(), name);
             map.put("name", name);
             map.put("token", token);
+            map.put("headimgUrl",userInfo.getHeadimgUrl());
             //9.重定向回相关页面
             return "redirect:http://localhost:3000/weixin/callback?" +
                     "token="+map.get("token")+ "&openid="+map.get("openid")+
-                    "&name="+URLEncoder.encode((String) map.get("name"),"utf-8");
+                    "&name="+URLEncoder.encode((String) map.get("name"),"utf-8")
+                    +"&headimgUrl="+map.get("headimgUrl");
         } catch (Exception e) {
             e.printStackTrace();
             throw new YyghException(20001,"用户扫码登录失败");

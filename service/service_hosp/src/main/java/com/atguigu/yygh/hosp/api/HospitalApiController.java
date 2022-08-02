@@ -3,11 +3,14 @@ package com.atguigu.yygh.hosp.api;
 import com.atguigu.yygh.common.R;
 import com.atguigu.yygh.hosp.service.DepartmentService;
 import com.atguigu.yygh.hosp.service.HospitalService;
+import com.atguigu.yygh.hosp.service.ScheduleService;
 import com.atguigu.yygh.model.hosp.Hospital;
+import com.atguigu.yygh.model.hosp.Schedule;
 import com.atguigu.yygh.vo.hosp.DepartmentVo;
 import com.atguigu.yygh.vo.hosp.HospitalQueryVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +30,9 @@ public class HospitalApiController {
 
     @Autowired
     private DepartmentService departmentService;
+
+    @Autowired
+    private ScheduleService scheduleService;
 
     @ApiOperation(value = "获取分页列表")
     @GetMapping("{page}/{limit}")
@@ -55,7 +61,24 @@ public class HospitalApiController {
     public R getHospInfo(@PathVariable("hoscode") String hoscode){
         Map<String,Object> map = hospitalService.getHospByHoscode(hoscode);
         return R.ok().data(map);
+    }
 
+    @ApiOperation(value = "获取可预约排班数据")
+    @GetMapping("auth/getBookingScheduleRule/{page}/{limit}/{hoscode}/{depcode}")
+    public R getBookingSchedule(@PathVariable Integer page ,@PathVariable Integer limit,
+                                @PathVariable String hoscode,@PathVariable String depcode){
+        Map<String,Object> map =
+                scheduleService.getBookingSchedule(page,limit,hoscode,depcode);
+        return R.ok().data(map);
+    }
+
+    @ApiOperation(value = "获取排班数据")
+    @GetMapping("auth/findScheduleList/{hoscode}/{depcode}/{workDate}")
+    public R findScheduleList( @PathVariable String hoscode,@PathVariable String depcode,
+                               @PathVariable String workdate){
+        List<Schedule> scheduleList =
+                scheduleService.getScheduleDetail(hoscode, depcode, workdate);
+        return R.ok().data("scheduleList",scheduleList);
     }
 
 

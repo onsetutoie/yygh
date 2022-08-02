@@ -3,12 +3,17 @@ package com.atguigu.yygh.user.service.impl;
 import com.atguigu.yygh.common.handler.YyghException;
 import com.atguigu.yygh.common.util.JwtHelper;
 import com.atguigu.yygh.enums.AuthStatusEnum;
+import com.atguigu.yygh.model.user.Patient;
 import com.atguigu.yygh.model.user.UserInfo;
 import com.atguigu.yygh.user.mapper.UserInfoMapper;
+import com.atguigu.yygh.user.service.PatientService;
 import com.atguigu.yygh.user.service.UserInfoService;
 import com.atguigu.yygh.vo.user.LoginVo;
 import com.atguigu.yygh.vo.user.UserAuthVo;
+import com.atguigu.yygh.vo.user.UserInfoQueryVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -24,6 +30,10 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
 
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
+    
+    @Autowired
+    private PatientService patientService;
+    
     //用户登录
     @Override
     public Map<String, Object> login(LoginVo loginVo) {
@@ -81,10 +91,14 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         if(StringUtils.isEmpty(name)) {
             name = userInfo.getPhone();
         }
+        if(StringUtils.isEmpty(userInfo.getHeadimgUrl())) {
+            userInfo.setHeadimgUrl("");
+        }
         //用户登录
         String token = JwtHelper.createToken(userInfo.getId(), name);
         map.put("name", name);
         map.put("token", token);
+        map.put("headimgUrl",userInfo.getHeadimgUrl());
 
         return map;
     }
@@ -117,11 +131,83 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         return userInfo;
     }
 
+    //带条件带分页查询用户列表
+    @Override
+    public Page<UserInfo> selectPage(Page<UserInfo> pageParams, UserInfoQueryVo userInfoQueryVo) {
+        //1.取出查询条件
+        String name = userInfoQueryVo.getKeyword(); //用户名称
+        Integer status = userInfoQueryVo.getStatus();//用户状态
+        Integer authStatus = userInfoQueryVo.getAuthStatus(); //认证状态
+        String createTimeBegin = userInfoQueryVo.getCreateTimeBegin(); //开始时间
+        String createTimeEnd = userInfoQueryVo.getCreateTimeEnd(); //结束时间
+        //2.验空进行条件拼装
+        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
+        if(!StringUtils.isEmpty(name)) {
+            wrapper.like("name",name);
+        }
+        if(!StringUtils.isEmpty(status)) {
+            wrapper.eq("status",status);
+        }
+        if(!StringUtils.isEmpty(authStatus)) {
+            wrapper.eq("auth_status",authStatus);
+        }
+        if(!StringUtils.isEmpty(createTimeBegin)) {
+            wrapper.ge("create_time",createTimeBegin);
+        }
+        if(!StringUtils.isEmpty(createTimeEnd)) {
+            wrapper.le("create_time",createTimeEnd);
+        }
+        //3.分页查询
+        Page<UserInfo> pages = baseMapper.selectPage(pageParams, wrapper);
+        //4.翻译字段
+        pages.getRecords().stream().forEach(item ->{
+            this.packUserInfo(item);
+
+        });
+        return pages;
+    }
+
+    @Override
+    public void lock(Long userId, Integer status) {
+        if (status.intValue() == 0 || status.intValue() == 1) {
+            UserInfo userInfo = baseMapper.selectById(userId);
+            userInfo.setStatus(status);
+            baseMapper.updateById(userInfo);
+        }
+    }
+
+    //用户详情
+    @Override
+    public Map<String, Object> show(Long userId) {
+        //1根据用户id查询用户信息（翻译字段）
+        UserInfo userInfo = this.packUserInfo(baseMapper.selectById(userId));
+        //2根据用户id查询就诊人信息
+        List<Patient> patientList = patientService.findList(userId);
+        //3封装map返回
+        Map<String, Object> map = new HashMap<>();
+        map.put("userInfo",userInfo);
+        map.put("patientList",patientList);
+        return map;
+
+    }
+
+    //认证审批
+    @Override
+    public void approval(Long userId, Integer authStatus) {
+        if (authStatus.intValue() == 2 || authStatus.intValue() == -1) {
+            UserInfo userInfo = baseMapper.selectById(userId);
+            userInfo.setAuthStatus(authStatus);
+            baseMapper.updateById(userInfo);
+        }
+    }
+
     //翻译相关字段
     private UserInfo packUserInfo(UserInfo userInfo) {
-        String statusNameByStatus =
-                AuthStatusEnum.getStatusNameByStatus(userInfo.getStatus());
-        userInfo.getParam().put("authStatusString",statusNameByStatus);
+        //处理认证状态编码
+        userInfo.getParam().put("authStatusString",AuthStatusEnum.getStatusNameByStatus(userInfo.getAuthStatus()));
+        //处理用户状态 0  1
+        String statusString = userInfo.getStatus().intValue()==0 ?"锁定" : "正常";
+        userInfo.getParam().put("statusString",statusString);
         return userInfo;
     }
 }

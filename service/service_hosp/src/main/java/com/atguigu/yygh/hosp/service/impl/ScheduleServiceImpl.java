@@ -345,6 +345,19 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     }
 
+    //修改排班
+    @Override
+    public void update(Schedule schedule) {
+        scheduleRepository.save(schedule);
+    }
+
+    @Override
+    public Schedule getScheduleByIds(String hoscode, String hosScheduleId) {
+        Schedule schedule =
+                scheduleRepository.getByHoscodeAndHosScheduleId(hoscode, hosScheduleId);
+        return schedule;
+    }
+
     //根据预约规则、分页信息查询可预约日期集合分页对象(IPage<Date>)
     private IPage<Date> getDateListPage(Integer page, Integer limit, BookingRule bookingRule) {
         //1从预约规则中获取开始挂号时间（当前系统日期+开始时间）

@@ -10,9 +10,12 @@ import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.atguigu.yygh.common.handler.YyghException;
 import com.atguigu.yygh.msm.service.MsmService;
+import com.atguigu.yygh.msm.utils.RandomUtil;
+import com.atguigu.yygh.vo.msm.MsmVo;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -51,6 +54,22 @@ public class MsmServiceImpl implements MsmService {
             e.printStackTrace();
             throw new YyghException(20001,"短信发送失败");
         }
+
+    }
+
+    //发送短信接口
+    @Override
+    public boolean send(MsmVo msmVo) {
+        String phone = msmVo.getPhone();
+        String templateCode = msmVo.getTemplateCode();
+        Map<String, Object> param = msmVo.getParam();
+        //模拟发送
+        String code = RandomUtil.getFourBitRandom();
+        Map<String,String> paramMap = new HashMap<>();
+        paramMap.put("code",code);
+        boolean isSend = this.send(phone, paramMap);
+        return isSend;
+
 
     }
 }

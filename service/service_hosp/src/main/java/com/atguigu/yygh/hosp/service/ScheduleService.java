@@ -32,4 +32,10 @@ public interface ScheduleService {
 
     //根据排班id获取预约下单数据
     ScheduleOrderVo getScheduleOrderVo(String scheduleId);
+
+    //修改排班
+    void update(Schedule schedule);
+
+    //根据医院编码、医院排班id获取排班详情
+    Schedule getScheduleByIds(String hoscode,String hosScheduleId);
 }
